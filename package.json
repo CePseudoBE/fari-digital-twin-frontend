@@ -11,26 +11,18 @@
     "lint:check": "eslint .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "typecheck": "vue-tsc --noEmit",
-    "prepare": "husky"
-  },
-  "lint-staged": {
-    "*.{ts,tsx,vue}": [
-      "eslint --fix",
-      "prettier --write"
-    ],
-    "*.{js,jsx,json,html,css,md}": [
-      "prettier --write"
-    ]
+    "typecheck": "vue-tsc --noEmit"
   },
   "dependencies": {
     "@giro3d/giro3d": "^0.43.0",
     "@tailwindcss/vite": "^4.1.10",
+    "@tanstack/vue-query": "^5.83.1",
     "axios": "^1.9.0",
     "cesium": "^1.130.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "lucide-vue-next": "^0.523.0",
+    "pinia": "^3.0.3",
     "reka-ui": "^2.3.1",
     "tailwind-merge": "^3.3.1",
     "tailwindcss": "^4.1.10",
@@ -52,8 +44,6 @@
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.3",
     "eslint-plugin-vue": "^10.4.0",
-    "husky": "^9.1.7",
-    "lint-staged": "^16.1.4",
     "prettier": "^3.6.2",
     "typescript": "^5.8.3",
     "vite": "^6.3.5",
