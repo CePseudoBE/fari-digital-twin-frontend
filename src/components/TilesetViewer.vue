@@ -1,8 +1,8 @@
 <template>
   <div class="tileset-viewer-wrapper">
-      <div ref="viewerContainer" class="viewer-container"></div>
-      <div v-if="loading" class="loading-indicator">Loading Tileset...</div>
-      <div v-if="error" class="error-message">{{ error }}</div>
+    <div ref="viewerContainer" class="viewer-container"></div>
+    <div v-if="loading" class="loading-indicator">Loading Tileset...</div>
+    <div v-if="error" class="error-message">{{ error }}</div>
   </div>
 </template>
 
@@ -37,13 +37,13 @@ const initializeViewer = () => {
       infoBox: false,
       terrainProvider: new Cesium.EllipsoidTerrainProvider(),
       imageryProvider: new Cesium.OpenStreetMapImageryProvider({
-        url: 'https://a.tile.openstreetmap.org/'
+        url: 'https://a.tile.openstreetmap.org/',
       }),
     });
   }
 };
 
-const loadTileset = async (url) => {
+const loadTileset = async url => {
   if (!viewer || !url) return;
 
   loading.value = true;
@@ -53,23 +53,27 @@ const loadTileset = async (url) => {
     if (currentTileset) {
       viewer.scene.primitives.remove(currentTileset);
     }
-    
+
     const tileset = await Cesium.Cesium3DTileset.fromUrl(url);
     currentTileset = viewer.scene.primitives.add(tileset);
 
     await viewer.zoomTo(tileset);
-
   } catch (err) {
     console.error('Failed to load tileset:', err);
-    error.value = 'Error loading tileset. The URL might be invalid or inaccessible.';
+    error.value =
+      'Error loading tileset. The URL might be invalid or inaccessible.';
   } finally {
     loading.value = false;
   }
 };
 
-watch(() => props.tilesetUrl, (newUrl) => {
-  loadTileset(newUrl);
-}, { immediate: true });
+watch(
+  () => props.tilesetUrl,
+  newUrl => {
+    loadTileset(newUrl);
+  },
+  { immediate: true }
+);
 
 onMounted(() => {
   initializeViewer();
@@ -84,7 +88,6 @@ onBeforeUnmount(() => {
     viewer = null;
   }
 });
-
 </script>
 
 <style scoped>
@@ -98,13 +101,14 @@ onBeforeUnmount(() => {
   width: 100%;
   height: 100%;
 }
-.loading-indicator, .error-message {
+.loading-indicator,
+.error-message {
   position: absolute;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
   color: white;
-  background-color: rgba(0,0,0,0.8);
+  background-color: rgba(0, 0, 0, 0.8);
   padding: 15px;
   border-radius: 5px;
   z-index: 10;
@@ -112,4 +116,4 @@ onBeforeUnmount(() => {
 .error-message {
   color: #ffcccc;
 }
-</style> 
+</style>

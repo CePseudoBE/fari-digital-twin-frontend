@@ -1,26 +1,28 @@
 <template>
   <LibraryBase
     title="Tileset Library"
-    itemType="tileset"
-    fetchUrl="/tileset-manager"
-    deleteUrlBase="/tileset-manager/delete"
-    :viewerComponent="TilesetViewer"
-    :uploadComponent="UploadTileset"
-    :codeSnippets="codeSnippets"
-    :transformData="transformTilesetData"
+    item-type="tileset"
+    fetch-url="/tileset-manager"
+    delete-url-base="/tileset-manager/delete"
+    :viewer-component="TilesetViewer"
+    :upload-component="UploadTileset"
+    :code-snippets="codeSnippets"
+    :transform-data="transformTilesetData"
   >
     <template #list-item="{ items, selectedItem, selectItem, deleteItem }">
       <li
         v-for="item in items"
         :key="item.url"
         class="item"
-        :class="{ 'selected': selectedItem && selectedItem.url === item.url }"
+        :class="{ selected: selectedItem && selectedItem.url === item.url }"
         @click="selectItem(item)"
       >
         <div class="item-info">
           <span class="item-description">{{ item.description }}</span>
         </div>
-        <button @click.stop="deleteItem(item)" class="delete-btn">Delete</button>
+        <button class="delete-btn" @click.stop="deleteItem(item)">
+          Delete
+        </button>
       </li>
     </template>
   </LibraryBase>
@@ -31,14 +33,15 @@ import LibraryBase from '../../components/LibraryBase.vue';
 import TilesetViewer from '../../components/TilesetViewer.vue';
 import UploadTileset from '../../components/UploadTileset.vue';
 
-const transformTilesetData = (data) => {
+const transformTilesetData = data => {
   return data.map(tileset => ({
     ...tileset,
-    description: tileset.description || 'No description'
+    description: tileset.description || 'No description',
   }));
 };
 
-const getCesiumJsSnippet = (tileset) => `
+const getCesiumJsSnippet = tileset =>
+  `
 import { Cesium3DTileset } from 'cesium';
 try {
     const tileset = await Cesium3DTileset.fromUrl(
@@ -51,7 +54,8 @@ try {
 }
 `.trim();
 
-const getCesiumUnitySnippet = (tileset) => `
+const getCesiumUnitySnippet = tileset =>
+  `
 using UnityEngine;
 using CesiumForUnity;
 public class AddTilesetFromUrl : MonoBehaviour
@@ -99,4 +103,4 @@ const codeSnippets = {
 .delete-btn:hover {
   background-color: #cc0000;
 }
-</style> 
+</style>

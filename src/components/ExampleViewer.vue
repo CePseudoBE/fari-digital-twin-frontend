@@ -2,7 +2,7 @@
   <div class="modal-overlay" @click.self="$emit('close')">
     <div class="modal-content">
       <button class="close-button" @click="$emit('close')">&times;</button>
-      <div class="cesium-container" ref="cesiumContainer"></div>
+      <div ref="cesiumContainer" class="cesium-container"></div>
       <div v-if="loading" class="loading-indicator">Loading Example...</div>
       <div v-if="error" class="error-message">{{ error }}</div>
       <div class="sidebar">
@@ -62,18 +62,26 @@ onMounted(async () => {
     });
 
     // Add base layer if included
-    const baseMapLayer = props.example.layers.find(layer => layer.type === 'basemap' && layer.enabled);
+    const baseMapLayer = props.example.layers.find(
+      layer => layer.type === 'basemap' && layer.enabled
+    );
     if (baseMapLayer) {
-      const baseLayer = new Cesium.ImageryLayer(new Cesium.OpenStreetMapImageryProvider({
-        url: 'https://a.tile.openstreetmap.org/'
-      }));
+      const baseLayer = new Cesium.ImageryLayer(
+        new Cesium.OpenStreetMapImageryProvider({
+          url: 'https://a.tile.openstreetmap.org/',
+        })
+      );
       viewer.imageryLayers.add(baseLayer);
     }
 
     // Load tilesets
-    const tilesetLayers = props.example.layers.filter(layer => layer.type === 'tileset' && layer.enabled);
+    const tilesetLayers = props.example.layers.filter(
+      layer => layer.type === 'tileset' && layer.enabled
+    );
     if (tilesetLayers.length > 0) {
-      const promises = tilesetLayers.map(layer => Cesium.Cesium3DTileset.fromUrl(layer.url));
+      const promises = tilesetLayers.map(layer =>
+        Cesium.Cesium3DTileset.fromUrl(layer.url)
+      );
       const loadedTilesets = await Promise.all(promises);
 
       loadedTilesets.forEach((loadedTs, index) => {
@@ -90,7 +98,9 @@ onMounted(async () => {
     }
 
     // Add WMS layers
-    const wmsLayers = props.example.layers.filter(layer => layer.type === 'wms' && layer.enabled);
+    const wmsLayers = props.example.layers.filter(
+      layer => layer.type === 'wms' && layer.enabled
+    );
     wmsLayers.forEach(layer => {
       viewer.imageryLayers.addImageryProvider(
         new Cesium.WebMapServiceImageryProvider({
@@ -99,7 +109,7 @@ onMounted(async () => {
           parameters: {
             service: 'WMS',
             transparent: true,
-            format: 'image/png'
+            format: 'image/png',
           },
         })
       );
@@ -107,7 +117,7 @@ onMounted(async () => {
 
     // Add click handler for 3D features
     const handler = new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas);
-    handler.setInputAction((movement) => {
+    handler.setInputAction(movement => {
       const feature = viewer.scene.pick(movement.position);
       if (feature instanceof Cesium.Cesium3DTileFeature) {
         const propertyNames = feature.getPropertyNames();
@@ -125,7 +135,6 @@ onMounted(async () => {
         });
       }
     }, Cesium.ScreenSpaceEventType.LEFT_DOUBLE_CLICK);
-
   } catch (err) {
     console.error('Failed to load example:', err);
     error.value = 'Error loading example. Some layers might be inaccessible.';
@@ -160,7 +169,7 @@ onBeforeUnmount(() => {
   background-color: white;
   padding: 0;
   border-radius: 8px;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   width: 90vw;
   height: 90vh;
   display: flex;
@@ -194,13 +203,14 @@ onBeforeUnmount(() => {
   text-align: center;
 }
 
-.loading-indicator, .error-message {
+.loading-indicator,
+.error-message {
   position: absolute;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
   color: white;
-  background-color: rgba(0,0,0,0.8);
+  background-color: rgba(0, 0, 0, 0.8);
   padding: 15px;
   border-radius: 5px;
   z-index: 1005;
@@ -259,4 +269,4 @@ onBeforeUnmount(() => {
   color: #aaa;
   text-transform: uppercase;
 }
-</style> 
+</style>

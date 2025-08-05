@@ -4,17 +4,24 @@
     <form @submit.prevent="uploadAsset">
       <div class="form-group">
         <label for="file">Asset File:</label>
-        <input type="file" id="file" @change="handleFileChange" required>
+        <input id="file" type="file" required @change="handleFileChange" />
       </div>
       <div class="form-group">
         <label for="description">Description:</label>
-        <textarea id="description" v-model="description" rows="3" required></textarea>
+        <textarea
+          id="description"
+          v-model="description"
+          rows="3"
+          required
+        ></textarea>
       </div>
       <div class="form-actions">
         <button type="submit" :disabled="!file || !description || uploading">
           {{ uploading ? 'Uploading...' : 'Upload' }}
         </button>
-        <button type="button" @click="$emit('cancel')" class="cancel-btn">Cancel</button>
+        <button type="button" class="cancel-btn" @click="$emit('cancel')">
+          Cancel
+        </button>
       </div>
       <div v-if="error" class="error">{{ error }}</div>
       <div v-if="successMessage" class="success">{{ successMessage }}</div>
@@ -34,7 +41,7 @@ const error = ref(null);
 const successMessage = ref('');
 const uploading = ref(false);
 
-const handleFileChange = (event) => {
+const handleFileChange = event => {
   file.value = event.target.files[0];
   successMessage.value = '';
   error.value = '';
@@ -60,13 +67,12 @@ const uploadAsset = async () => {
     description.value = '';
     // Reset file input if possible (or just the ref)
     const fileInput = document.querySelector('#file');
-    if(fileInput) fileInput.value = '';
+    if (fileInput) fileInput.value = '';
     file.value = null;
 
     setTimeout(() => {
-        emit('uploaded');
+      emit('uploaded');
     }, 1500); // Wait a bit so user can see success message
-
   } catch (err) {
     console.error('Error uploading asset:', err);
     error.value = 'Failed to upload asset. Please try again.';
@@ -101,7 +107,7 @@ h2 {
   font-weight: bold;
 }
 
-.form-group input[type="file"],
+.form-group input[type='file'],
 .form-group textarea {
   width: 100%;
   padding: 8px;
@@ -136,11 +142,11 @@ button:hover:not(:disabled) {
 }
 
 .cancel-btn {
-    background-color: #f44336;
+  background-color: #f44336;
 }
 
 .cancel-btn:hover:not(:disabled) {
-    background-color: #d32f2f;
+  background-color: #d32f2f;
 }
 
 .error {
@@ -154,4 +160,4 @@ button:hover:not(:disabled) {
   margin-top: 15px;
   text-align: center;
 }
-</style> 
+</style>

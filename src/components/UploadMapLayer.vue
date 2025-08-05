@@ -4,21 +4,40 @@
     <form @submit.prevent="addLayer">
       <div class="form-group">
         <label for="url">Provider URL:</label>
-        <input type="url" id="url" v-model="url" placeholder="e.g., http://example.com/wms" required>
+        <input
+          id="url"
+          v-model="url"
+          type="url"
+          placeholder="e.g., http://example.com/wms"
+          required
+        />
       </div>
       <div class="form-group">
         <label for="layer">Layer Name/ID:</label>
-        <input type="text" id="layer" v-model="layer" placeholder="e.g., MyLayerName" required>
+        <input
+          id="layer"
+          v-model="layer"
+          type="text"
+          placeholder="e.g., MyLayerName"
+          required
+        />
       </div>
       <div class="form-group">
         <label for="description">Description:</label>
-        <textarea id="description" v-model="description" rows="3" required></textarea>
+        <textarea
+          id="description"
+          v-model="description"
+          rows="3"
+          required
+        ></textarea>
       </div>
       <div class="form-actions">
         <button type="submit" :disabled="submitting">
           {{ submitting ? 'Adding...' : 'Add Layer' }}
         </button>
-        <button type="button" @click="$emit('cancel')" class="cancel-btn">Cancel</button>
+        <button type="button" class="cancel-btn" @click="$emit('cancel')">
+          Cancel
+        </button>
       </div>
       <div v-if="error" class="error">{{ error }}</div>
       <div v-if="successMessage" class="success">{{ successMessage }}</div>
@@ -39,7 +58,6 @@ const error = ref(null);
 const successMessage = ref('');
 const submitting = ref(false);
 
-
 const addLayer = async () => {
   error.value = null;
   successMessage.value = '';
@@ -51,7 +69,7 @@ const addLayer = async () => {
         url: url.value,
         layer: layer.value,
         description: description.value,
-      }
+      },
     });
 
     successMessage.value = 'Map layer added successfully!';
@@ -60,12 +78,12 @@ const addLayer = async () => {
     description.value = '';
 
     setTimeout(() => {
-        emit('uploaded');
+      emit('uploaded');
     }, 1500);
-
   } catch (err) {
     console.error('Error adding map layer:', err);
-    error.value = 'Failed to add map layer. Please check the details and try again.';
+    error.value =
+      'Failed to add map layer. Please check the details and try again.';
   } finally {
     submitting.value = false;
   }
@@ -124,10 +142,10 @@ button:hover:not(:disabled) {
   background-color: #369f77;
 }
 .cancel-btn {
-    background-color: #f44336;
+  background-color: #f44336;
 }
 .cancel-btn:hover:not(:disabled) {
-    background-color: #d32f2f;
+  background-color: #d32f2f;
 }
 .error {
   color: red;
@@ -139,4 +157,4 @@ button:hover:not(:disabled) {
   margin-top: 15px;
   text-align: center;
 }
-</style> 
+</style>

@@ -1,8 +1,8 @@
 <template>
   <div class="map-viewer-wrapper">
-      <div ref="cesiumContainer" class="viewer-container"></div>
-      <div v-if="legendUrl" class="legend-container">
-        <img :src="legendUrl" alt="Map Legend" />
+    <div ref="cesiumContainer" class="viewer-container"></div>
+    <div v-if="legendUrl" class="legend-container">
+      <img :src="legendUrl" alt="Map Legend" />
     </div>
   </div>
 </template>
@@ -36,7 +36,7 @@ const initializeViewer = () => {
   if (cesiumContainer.value && !viewer) {
     viewer = new Cesium.Viewer(cesiumContainer.value, {
       imageryProvider: new Cesium.OpenStreetMapImageryProvider({
-        url: 'https://tile.openstreetmap.org/'
+        url: 'https://tile.openstreetmap.org/',
       }),
       sceneMode: Cesium.SceneMode.SCENE2D,
       baseLayerPicker: false,
@@ -49,35 +49,38 @@ const initializeViewer = () => {
     });
 
     viewer.camera.setView({
-      destination: Cesium.Rectangle.fromDegrees(4.25, 50.75, 4.45, 50.95)
+      destination: Cesium.Rectangle.fromDegrees(4.25, 50.75, 4.45, 50.95),
     });
   }
 };
 
-const updateMapLayer = (newMapLayer) => {
+const updateMapLayer = newMapLayer => {
   if (viewer && newMapLayer && newMapLayer.url && newMapLayer.layer) {
     if (currentImageryLayer) {
       viewer.imageryLayers.remove(currentImageryLayer, false);
     }
-    
+
     currentImageryLayer = viewer.imageryLayers.addImageryProvider(
-        new Cesium.WebMapServiceImageryProvider({
+      new Cesium.WebMapServiceImageryProvider({
         url: newMapLayer.url,
         layers: newMapLayer.layer,
-          parameters: {
-            service: 'WMS',
-            transparent: true,
-            format: 'image/png'
-          },
-        })
-      );
-    }
+        parameters: {
+          service: 'WMS',
+          transparent: true,
+          format: 'image/png',
+        },
+      })
+    );
+  }
 };
 
-watch(() => props.mapLayer, (newMapLayer) => {
-  updateMapLayer(newMapLayer);
-}, { immediate: true });
-
+watch(
+  () => props.mapLayer,
+  newMapLayer => {
+    updateMapLayer(newMapLayer);
+  },
+  { immediate: true }
+);
 
 onMounted(() => {
   initializeViewer();
@@ -90,7 +93,6 @@ onBeforeUnmount(() => {
     viewer = null;
   }
 });
-
 </script>
 
 <style scoped>
@@ -118,4 +120,4 @@ onBeforeUnmount(() => {
   max-height: 300px;
   display: block;
 }
-</style> 
+</style>

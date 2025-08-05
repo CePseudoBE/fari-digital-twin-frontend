@@ -1,20 +1,35 @@
 <template>
   <div class="library-container">
-    <component :is="uploadComponent" v-if="showUploadPage" @uploaded="handleItemUploaded" @cancel="showUploadPage = false" />
+    <component
+      :is="uploadComponent"
+      v-if="showUploadPage"
+      @uploaded="handleItemUploaded"
+      @cancel="showUploadPage = false"
+    />
     <div v-else class="two-column-layout">
       <!-- Left Column: Item List -->
       <div class="left-column">
         <div class="header">
           <h1>{{ title }}</h1>
-          <button @click="showUploadPage = true" class="upload-btn">Upload {{ itemType }}</button>
+          <button class="upload-btn" @click="showUploadPage = true">
+            Upload {{ itemType }}
+          </button>
         </div>
-        <div v-if="error" class="error">{{ error }}</div>
-        <div v-if="loading" class="loading-text">Loading {{ itemType }}s...</div>
-        <div v-if="!loading && items.length === 0" class="no-items-text">
+        <ErrorDisplay :error="error" class="mb-4" @close="clearError" />
+        <div v-if="isLoading" class="loading-text">
+          Loading {{ itemType }}s...
+        </div>
+        <div v-if="!isLoading && items.length === 0" class="no-items-text">
           No {{ itemType }}s found.
         </div>
         <ul v-if="items.length > 0" class="item-list">
-            <slot name="list-item" :items="items" :selectedItem="selectedItem" :selectItem="selectItem" :deleteItem="deleteItem"></slot>
+          <slot
+            name="list-item"
+            :items="items"
+            :selected-item="selectedItem"
+            :select-item="selectItem"
+            :delete-item="deleteItem"
+          ></slot>
         </ul>
       </div>
 
@@ -28,78 +43,110 @@
             <div class="code-snippet-header">
               <h3>Code Example</h3>
               <div class="language-selector">
-                <button :class="{ active: selectedLanguage === 'js' }" @click="selectedLanguage = 'js'">CesiumJS</button>
-                <button :class="{ active: selectedLanguage === 'unity' }" @click="selectedLanguage = 'unity'">Cesium Unity</button>
+                <button
+                  :class="{ active: selectedLanguage === 'js' }"
+                  @click="selectedLanguage = 'js'"
+                >
+                  CesiumJS
+                </button>
+                <button
+                  :class="{ active: selectedLanguage === 'unity' }"
+                  @click="selectedLanguage = 'unity'"
+                >
+                  Cesium Unity
+                </button>
               </div>
             </div>
             <pre><code>{{ currentCodeSnippet }}</code></pre>
           </div>
         </div>
         <div v-else class="placeholder">
-          <p>Select an {{ itemType }} from the list to visualize it and get the integration code.</p>
+          <p>
+            Select an {{ itemType }} from the list to visualize it and get the
+            integration code.
+          </p>
         </div>
       </div>
     </div>
   </div>
 </template>
 
-<script setup>
-import { ref, onMounted, computed } from 'vue';
-import { fetchItems as apiFetchItems, deleteItem as apiDeleteItem } from '@/lib/api';
+<script setup lang="ts">
+import { ref, onMounted, computed, type Component } from 'vue';
+import {
+  fetchItems as apiFetchItems,
+  deleteItem as apiDeleteItem,
+  type Asset,
+} from '@/lib/api';
+import { useErrorHandler } from '@/composables/useErrorHandler';
+import ErrorDisplay from '@/components/ui/ErrorDisplay.vue';
 
-const props = defineProps({
-  title: String,
-  itemType: String,
-  fetchUrl: String,
-  deleteUrlBase: String,
-  viewerComponent: Object,
-  uploadComponent: Object,
-  codeSnippets: Object,
-  transformData: Function,
-  deleteItem: Function // Optional: for custom delete logic like in maps
-});
+interface LibraryItem extends Asset {
+  [key: string]: any;
+}
 
-const items = ref([]);
-const selectedItem = ref(null);
-const error = ref(null);
-const loading = ref(true);
+interface CodeSnippets {
+  [language: string]: (item: LibraryItem) => string;
+}
+
+interface Props {
+  title: string;
+  itemType: string;
+  fetchUrl: string;
+  deleteUrlBase: string;
+  viewerComponent: Component;
+  uploadComponent: Component;
+  codeSnippets: CodeSnippets;
+  transformData?: (data: any[]) => LibraryItem[];
+  deleteItem?: (item: LibraryItem) => Promise<void>;
+}
+
+const props = defineProps<Props>();
+
+// Composables
+const { error, isLoading, handleError, clearError, withLoading } =
+  useErrorHandler();
+
+// State
+const items = ref<LibraryItem[]>([]);
+const selectedItem = ref<LibraryItem | null>(null);
 const showUploadPage = ref(false);
-const selectedLanguage = ref('js'); // 'js' or 'unity'
+const selectedLanguage = ref<'js' | 'unity'>('js');
 
 const viewerProps = computed(() => {
-    if(!selectedItem.value) return {};
-    if (props.itemType === 'asset') return { assetUrl: selectedItem.value.url };
-    if (props.itemType === 'map') return { mapLayer: selectedItem.value };
-    if (props.itemType === 'tileset') return { tilesetUrl: selectedItem.value.url };
-    return {};
+  if (!selectedItem.value) return {};
+  if (props.itemType === 'asset') return { assetUrl: selectedItem.value.url };
+  if (props.itemType === 'map') return { mapLayer: selectedItem.value };
+  if (props.itemType === 'tileset')
+    return { tilesetUrl: selectedItem.value.url };
+  return {};
 });
 
 const currentCodeSnippet = computed(() => {
-    if (!selectedItem.value) return '';
-    const snippetGenerator = props.codeSnippets[selectedLanguage.value];
-    return snippetGenerator ? snippetGenerator(selectedItem.value) : '';
+  if (!selectedItem.value) return '';
+  const snippetGenerator = props.codeSnippets[selectedLanguage.value];
+  return snippetGenerator ? snippetGenerator(selectedItem.value) : '';
 });
 
 const fetchItems = async () => {
-  loading.value = true;
-  error.value = null;
-  try {
+  const result = await withLoading(async () => {
     const response = await apiFetchItems(props.fetchUrl);
     const data = response.data;
+
     if (Array.isArray(data)) {
-        items.value = props.transformData ? props.transformData(data) : data;
-        if (items.value.length > 0) {
-            selectedItem.value = items.value[0];
-        }
+      items.value = props.transformData ? props.transformData(data) : data;
+      if (items.value.length > 0) {
+        selectedItem.value = items.value[0];
+      }
     } else {
-        items.value = [];
+      items.value = [];
     }
-  } catch (err) {
-    console.error(`Error fetching ${props.itemType}s:`, err);
-    error.value = `Failed to fetch ${props.itemType}s. Make sure the backend server is running.`;
+
+    return data;
+  });
+
+  if (!result) {
     items.value = [];
-  } finally {
-    loading.value = false;
   }
 };
 
@@ -108,28 +155,32 @@ const handleItemUploaded = () => {
   fetchItems();
 };
 
-const deleteItem = async (item) => {
-    if (props.deleteItem) {
-        await props.deleteItem(item);
-        fetchItems(); // Refetch items after custom delete
-        return;
+const deleteItem = async (item: LibraryItem) => {
+  if (props.deleteItem) {
+    const result = await withLoading(() => props.deleteItem!(item));
+    if (result !== null) {
+      await fetchItems(); // Refetch items after custom delete
     }
-  try {
-    await apiDeleteItem(props.deleteUrlBase, item);
+    return;
+  }
+
+  const result = await withLoading(() =>
+    apiDeleteItem(props.deleteUrlBase, item)
+  );
+  if (result !== null) {
     items.value = items.value.filter(i => i.url !== item.url);
     if (selectedItem.value && selectedItem.value.url === item.url) {
       selectedItem.value = items.value.length > 0 ? items.value[0] : null;
     }
-  } catch (err) {
-    console.error(`Error deleting ${props.itemType}:`, err);
-    error.value = `Failed to delete ${props.itemType}.`;
   }
 };
 
-const selectItem = (item) => {
+const selectItem = (item: LibraryItem) => {
   selectedItem.value = item;
+  clearError();
 };
 
+// Lifecycle
 onMounted(fetchItems);
 </script>
 
@@ -168,7 +219,7 @@ h1 {
   padding: 8px 12px;
   border: none;
   border-radius: 4px;
-  background-color: #4CAF50;
+  background-color: #4caf50;
   color: white;
   cursor: pointer;
 }
@@ -180,17 +231,17 @@ h1 {
   padding: 0;
 }
 .viewer-section {
-    display: flex;
-    flex-direction: column;
-    height: 100%;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 }
 .viewer-container {
-    flex-grow: 1;
-    background-color: #e0e0e0;
-    margin-bottom: 20px;
+  flex-grow: 1;
+  background-color: #e0e0e0;
+  margin-bottom: 20px;
 }
 .code-snippet-container {
-    flex-shrink: 0;
+  flex-shrink: 0;
 }
 .code-snippet-header {
   display: flex;
@@ -222,11 +273,12 @@ pre {
   color: #888;
 }
 .error {
-    color: red;
+  color: red;
 }
-.loading-text, .no-items-text {
-    text-align: center;
-    padding: 20px;
-    color: #666;
+.loading-text,
+.no-items-text {
+  text-align: center;
+  padding: 20px;
+  color: #666;
 }
-</style> 
+</style>

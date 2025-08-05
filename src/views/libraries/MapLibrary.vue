@@ -1,31 +1,42 @@
 <template>
   <LibraryBase
     title="Map Layer Library"
-    itemType="map"
-    fetchUrl="/maps-manager/all"
-    :viewerComponent="MapViewer"
-    :uploadComponent="UploadMapLayer"
-    :codeSnippets="codeSnippets"
-    :deleteItem="deleteMapLayer"
+    item-type="map"
+    fetch-url="/maps-manager/all"
+    :viewer-component="MapViewer"
+    :upload-component="UploadMapLayer"
+    :code-snippets="codeSnippets"
+    :delete-item="deleteMapLayer"
   >
     <template #list-item="{ items, selectedItem, selectItem, deleteItem }">
-       <div v-for="(layers, provider) in groupedLayers(items)" :key="provider" class="provider-group">
-          <h2 class="provider-name">{{ provider }}</h2>
-          <ul class="asset-list">
-            <li
-              v-for="layer in layers"
-              :key="layer.layer"
-              class="asset-item"
-              :class="{ 'selected': selectedItem && selectedItem.layer === layer.layer && selectedItem.url === layer.url }"
-              @click="selectItem(layer)"
-            >
-              <div class="layer-info">
-                <span class="layer-description">{{ layer.description }}</span>
-              </div>
-              <button @click.stop="deleteItem(layer)" class="delete-btn">Delete</button>
-            </li>
-          </ul>
-        </div>
+      <div
+        v-for="(layers, provider) in groupedLayers(items)"
+        :key="provider"
+        class="provider-group"
+      >
+        <h2 class="provider-name">{{ provider }}</h2>
+        <ul class="asset-list">
+          <li
+            v-for="layer in layers"
+            :key="layer.layer"
+            class="asset-item"
+            :class="{
+              selected:
+                selectedItem &&
+                selectedItem.layer === layer.layer &&
+                selectedItem.url === layer.url,
+            }"
+            @click="selectItem(layer)"
+          >
+            <div class="layer-info">
+              <span class="layer-description">{{ layer.description }}</span>
+            </div>
+            <button class="delete-btn" @click.stop="deleteItem(layer)">
+              Delete
+            </button>
+          </li>
+        </ul>
+      </div>
     </template>
   </LibraryBase>
 </template>
@@ -37,7 +48,7 @@ import LibraryBase from '@/components/LibraryBase.vue';
 import MapViewer from '@/components/MapViewer.vue';
 import UploadMapLayer from '@/components/UploadMapLayer.vue';
 
-const groupedLayers = (layers) => {
+const groupedLayers = layers => {
   if (!Array.isArray(layers)) {
     return {};
   }
@@ -51,7 +62,7 @@ const groupedLayers = (layers) => {
   }, {});
 };
 
-const deleteMapLayer = async (layer) => {
+const deleteMapLayer = async layer => {
   try {
     await apiDeleteMapLayer(layer);
   } catch (err) {
@@ -60,7 +71,8 @@ const deleteMapLayer = async (layer) => {
   }
 };
 
-const getCesiumJsSnippet = (layer) => `
+const getCesiumJsSnippet = layer =>
+  `
 import { Viewer, WebMapServiceImageryProvider } from 'cesium';
 const viewer = new Viewer('cesiumContainer');
 const wmsProvider = new WebMapServiceImageryProvider({
@@ -74,7 +86,8 @@ const wmsProvider = new WebMapServiceImageryProvider({
 viewer.imageryLayers.addImageryProvider(wmsProvider);
 `.trim();
 
-const getCesiumUnitySnippet = (layer) => `
+const getCesiumUnitySnippet = layer =>
+  `
 using UnityEngine;
 using CesiumForUnity;
 public class AddWmsLayer : MonoBehaviour
@@ -133,4 +146,4 @@ const codeSnippets = {
 .delete-btn:hover {
   background-color: #cc0000;
 }
-</style> 
+</style>
